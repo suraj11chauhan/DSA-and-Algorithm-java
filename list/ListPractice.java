@@ -72,8 +72,28 @@ public class ListPractice {
 
         /*int[] nums = {1,2,3,4,5};
         System.out.println(subarrayWithGivenSum(nums,120));*/
-        int [] nums  = {2,3,5,4,6,1};
-        System.out.println(getWSum(nums,2,3));
+        /*int [] nums  = {2,3,5,4,6,1};
+        System.out.println(getWSum(nums,2,3));*/
+
+         /*   int[] nums = {3,4,8,-9,20,6};
+        int[] nums1 = {4,2,-2};
+        int[] nums2 = {4,2,2};
+        System.out.println(equilibrium(nums));
+        System.out.println(equilibrium(nums1));
+        System.out.println(equilibrium(nums2));
+        System.out.println("-----Efficient Solution");
+        System.out.println(equilibrium2(nums));
+        System.out.println(equilibrium2(nums1));
+        System.out.println(equilibrium2(nums2));*/
+
+        /*int[] nums = {5,2,6,1,1,1,1,4};
+        System.out.println(canPartitionIntoThreeParts(nums));*/
+
+        /*int[] left  = {1,2};
+        int[] right = {5,4};
+        int[] left1 = {1,2,5,15},  right1 = {5,8,7,18};
+        //System.out.println(maximumAppearingElementInRanges(left,right));
+        System.out.println(maximumAppearingElementInRanges1(left1,right1));*/
     }
 
 
@@ -591,6 +611,146 @@ public class ListPractice {
         else
             return prefixWsum[r] - prefixWsum[l - 1] - (l * (prefixSum[r] - prefixSum[l - 1]));
     }
+
+    
+    /*
+    example 1:
+     input: {3,4,8,-9,20,6}
+     output: True
+    example 2:
+     input: {4,2,-2}
+     output: True
+    example 2:
+     input: {4,2,2}
+     output: False
+     */
+    // Equilibrium point => naive solution => O(n^2)
+    public static boolean equilibrium(int[] nums){
+        if (nums.length == 0){
+            return true;
+        }
+        for (int i = 0; i < nums.length; i++) {
+            int leftSum = 0;
+            int rightSum = 0;
+            for (int j = 0; j < i; j++) {
+                leftSum += nums[j];
+            }
+            for (int j = i+1; j < nums.length; j++) {
+                rightSum += nums[j];
+            }
+            if (leftSum == rightSum)
+                return true;
+        }
+        return false;
+    }
+
+    // Equilibrium point => efficient solution => O(n)
+    public static boolean equilibrium1(int[] nums){
+        if (nums.length == 0){
+            return true;
+        }
+        int[] prefixSum = prefixSum(nums);
+        for (int i = 0; i < nums.length; i++) {
+            int leftSum = i < 1 ? 0: prefixSum[i-1];
+            int rightSum = i > nums.length - 1? 0 : prefixSum[nums.length - 1] - prefixSum[i];
+            if (leftSum == rightSum)
+                return true;
+        }
+        return false;
+    }
+
+    // Equilibrium point => efficient solution => O(n)
+    public static boolean equilibrium2(int[] nums){
+        if (nums.length == 0){
+            return true;
+        }
+        int rightSum = Arrays.stream(nums).sum();
+        int leftSum = 0;
+        for (int i = 0; i < nums.length; i++) {
+            rightSum -=  nums[i];
+            if (leftSum == rightSum)
+                return true;
+            leftSum += nums[i];
+        }
+        return false;
+    }
+    /*
+    * Ex. 1:
+    * arr = {5,2,6,1,1,1,1,4}
+    * o/p = True
+    * Ex. 2:
+    * arr = {3,2,5,1,1,5}
+    * o/p = False
+    * */
+    //Check if Array can be partitioned into three different parts with equal sum
+    public static boolean canPartitionIntoThreeParts(int[] nums){
+        if (nums.length == 0){
+            return true;
+        }
+        int totalSum = Arrays.stream(nums).sum();
+        // If the total sum is not divisible by 3, we cannot partition
+        if (totalSum % 3 != 0) {
+            return false;
+        }
+
+        int targetSum = totalSum / 3;
+        int currentSum = 0;
+        int partitions = 0;
+
+        for (int num : nums) {
+            currentSum += num;
+            if (currentSum == targetSum) {
+                partitions++;
+                currentSum = 0;
+            }
+
+            // If we've already found 3 partitions, we can return true
+            if (partitions == 3) {
+                return true;
+            }
+        }
+
+        // If we finish the loop and have less than 3 partitions, return false
+        return false;
+    }
+
+    /*
+    *
+    * Ex.1
+    * i/p => left = {1,2,5,15},  right = {5,8,7,18}
+    * o/p => 5
+    *
+    * Ex.2
+    * i/p => left = {1,2}.  right = {5,4}
+    * o/p => 2
+    * Explanation => {1,2,3,4,5},{2,3,4} max appearing is element 2
+    *  */
+    //Maximum appearing element in Ranges (Naive Solution) => O(n*max)
+    public static int maximumAppearingElementInRanges(int[] left,int[] right){
+       int[] freq = new int[100];
+        for (int i = 0; i < left.length; i++) {
+            for(int j = left[i]; j < right[i] + 1; j++){
+                freq[j] += 1;
+            }
+        }
+        return IntStream.range(0, freq.length).reduce((i,j)->freq[i]>freq[j]?i:j).orElse(-1);
+    }
+
+    //Maximum appearing element in Ranges (Efficient Solution) => O(n+max)
+    public static int maximumAppearingElementInRanges1(int[] left,int[] right){
+        int[] freq = new int[101];
+        for (int i = 0; i < left.length; i++) {
+            freq[left[i]] += 1;
+            freq[right[i]+1] -= 1;
+        }
+        for (int i = 1; i < freq.length; i++) {
+            freq[i] = freq[i]+freq[i-1];
+        }
+        return IntStream.range(0, freq.length).reduce((i,j)->freq[i]>freq[j]?i:j).getAsInt();
+    }
+
+
+
 
 
     //Efficient Approach (worst case - O(n))
